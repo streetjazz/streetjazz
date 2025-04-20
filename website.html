@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StreetJazz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: url('images/collage2.png') center/cover no-repeat;
+      height: 2170vh; /* Tall height for scrolling effect */
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      overflow-y: hidden; /* Prevent scroll until GO */
+      animation: scrollBg 250s linear infinite;
+      animation-play-state: paused; /* Start paused */
+    }
+
+    @keyframes scrollBg {
+      from { background-position: center 0; }
+      to { background-position: center 100%; }
+    }
+
+    .audio-info {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      color: white;
+      text-align: center;
+    }
+
+    #start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 1s ease;
+    }
+
+    .start-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .video-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    video {
+      max-height: 90vh;
+      max-width: 45vw;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .start-button {
+      position: absolute;
+      top:30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10000;
+      display: none;
+      cursor: pointer;
+    }
+
+    .start-button img {
+      width: 90px; 
+      height: 100px; 
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .start-button img:hover {
+      transform: scale(1.2);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
+
+    .enter-text {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.5rem; /* Adjust size as needed */
+    color: rgb(255, 255, 255);
+    padding: 10px 20px;
+    margin-top: 10px; /* Space between the button and the "Enter" text */
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.3s ease; /* Fade-in effect for "Enter" text */
+    border: 2px solid rgb(32, 32, 32); /* Create a border around the text */
+    background-color: rgb(4, 4, 4); /* ← light white tint */
+}
+
+/* Display "Enter" text when the button is visible */
+.start-button:hover .enter-text {
+  opacity: 1; /* Make the text appear when the button is hovered */
+}
+    
+  </style>
+</head>
+<body>
+
+  <div id="start-screen">
+    <div class="start-content">
+      <!-- GIF Button -->
+      <div class="start-button">
+        <img src="gifs/dollar-money.gif" alt="GO Button" id="go-button" />
+        <div class="enter-text">Enter</div> <!-- Added "Enter" text -->
+      </div>
+
+      <!-- Video Row -->
+      <div class="video-row">
+        <video id="video1" autoplay playsinline preload="auto">
+          <source src="video/street.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <video id="video2" playsinline preload="auto">
+          <source src="video/jazz.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-player" src="REC014.mp3" preload="auto"></audio>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const audioPlayer = document.getElementById("audio-player");
+      const startScreen = document.getElementById("start-screen");
+      const goButton = document.getElementById("go-button");
+      const video1 = document.getElementById("video1");
+      const video2 = document.getElementById("video2");
+      let isStarted = false;
+
+      // Play second video after first one ends
+      video1.addEventListener("ended", () => {
+        video2.play();
+      });
+
+      // Show GO button after 8 seconds
+      setTimeout(() => {
+        goButton.parentElement.style.display = "block";  // Show the button
+      }, 8000);
+
+      // On GO click, start experience
+      goButton.addEventListener("click", () => {
+        if (!isStarted) {
+          audioPlayer.play().then(() => {
+            document.body.style.overflowY = "scroll"; // Enable scroll
+            document.body.style.animationPlayState = "running"; // Start animation
+
+            startScreen.style.opacity = "0";
+            setTimeout(() => {
+              startScreen.style.display = "none";
+            }, 1000);
+
+            isStarted = true;
+          }).catch(error => console.error("Audio playback failed:", error));
+        }
+      });
+
+      // Sync audio with scroll
+      function syncAudioWithScroll() {
+        const scrollTop = window.scrollY;
+        const maxScroll = document.body.scrollHeight - window.innerHeight;
+        const scrollPercentage = scrollTop / maxScroll;
+
+        const newTime = scrollPercentage * audioPlayer.duration;
+        if (!isNaN(newTime)) {
+          audioPlayer.currentTime = newTime;
+        }
+
+        document.body.style.backgroundPosition = `center ${scrollPercentage * 100}%`;
+      }
+
+      window.addEventListener("scroll", syncAudioWithScroll);
+    });
+  </script>
+</body>
+</html>
