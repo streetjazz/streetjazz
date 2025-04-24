@@ -12,19 +12,23 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
-      background: url('images/collage2.png') center/cover no-repeat;
-      height: 2170vh; /* Tall height for scrolling effect */
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow-x: hidden;
-      overflow-y: hidden; /* Prevent scroll until GO */
-      animation: scrollBg 250s linear infinite;
-      animation-play-state: paused; /* Start paused */
-    }
+  font-family: Arial, sans-serif;
+  background: url('images/collage2.png') center top / 100% auto;
+  height: 2170vh; /* Tall height for scrolling effect */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: hidden; /* Prevent scroll until GO */
+  animation: scrollBg 250s linear infinite;
+  animation-play-state: paused; /* Start paused */
+  touch-action: manipulation;
+}
+
+
+    
 
     @keyframes scrollBg {
       from { background-position: center 0; }
@@ -147,7 +151,7 @@
     </div>
   </div>
 
-  <audio id="audio-player" src="REC014.mp3" preload="auto"></audio>
+  <audio id="audio-player" src="REC014.mp3" preload="auto" loop></audio>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
