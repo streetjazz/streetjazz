@@ -33,11 +33,6 @@
       to { background-position: center 100%; }
     }
 
-    @keyframes flash {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
     #start-screen {
       position: fixed;
       top: 0;
@@ -87,8 +82,9 @@
       justify-content: center;
       align-items: center;
       border: none;
+      position: relative;
+      overflow: hidden;
     }
-
 
     .video-column {
       display: flex;
@@ -96,9 +92,24 @@
       align-items: center;
     }
 
-    .gif-above {
-      height: 35px;
-      margin-bottom: 10px;
+    #loading-bar {
+      width: 100%;
+      height: 8px;
+      background: lightgray;
+      position: absolute;
+      top: calc(50% - 4px);
+    }
+
+    #progress {
+      width: 0%;
+      height: 100%;
+      background: black;
+      transition: width 0.2s linear;
+    }
+
+    #enter-text {
+      display: none;
+      z-index: 1;
     }
   </style>
 </head>
@@ -107,22 +118,25 @@
   <div id="start-screen">
     <div class="start-content">
       <div class="video-row">
-        <!-- Video1 Column with GIF above -->
+        <!-- Video1 Column -->
         <div class="video-column">
-          <!-- <img src="gifs/dollar-money.gif" alt="Visual GIF" class="gif-above" /> -->
-
-          <video id="video1" autoplay playsinline preload="auto">
+          <video id="video1" autoplay muted playsinline preload="auto">
             <source src="video/street.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
 
           <div class="enter-wrapper" style="margin-top: 20px;">
-            <button id="go-button" class="enter-text">enter site</button>
+            <button id="go-button" class="enter-text">
+              <div id="loading-bar">
+                <div id="progress"></div>
+              </div>
+              <span id="enter-text">enter site</span>
+            </button>
           </div>
         </div>
 
         <!-- Video2 Column -->
-        <video id="video2" playsinline preload="auto" style="width: 30vw; height: auto;">
+        <video id="video2" muted playsinline preload="auto" style="width: 30vw; height: auto;">
           <source src="video/jazz.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
@@ -139,18 +153,60 @@
       const goButton = document.getElementById("go-button");
       const video1 = document.getElementById("video1");
       const video2 = document.getElementById("video2");
+      const loadingBar = document.getElementById("loading-bar");
+      const progress = document.getElementById("progress");
+      const enterText = document.getElementById("enter-text");
+
       let isStarted = false;
-  
+      let video1Played = false;
+      let video2Played = false;
+
+      // Simulate loading bar progress based on video durations
+      function updateProgress() {
+        let totalDuration = (video1.duration || 1) + (video2.duration || 1);
+        let update = () => {
+          let played1 = video1.currentTime || 0;
+          let played2 = video2.currentTime || 0;
+          let progressPercent = ((played1 + played2) / totalDuration) * 100;
+          if (progressPercent > 100) progressPercent = 100;
+          progress.style.width = progressPercent + "%";
+          if (!(video1Played && video2Played)) {
+            requestAnimationFrame(update);
+          }
+        };
+        requestAnimationFrame(update);
+      }
+
+      // Start tracking once both videos are ready
+      video1.addEventListener("loadedmetadata", () => {
+        updateProgress();
+      });
+
+      video2.addEventListener("loadedmetadata", () => {
+        updateProgress();
+      });
+
       video1.addEventListener("ended", () => {
+        video1Played = true;
         video2.play();
+        checkBothPlayed();
       });
-  
+
       video2.addEventListener("ended", () => {
-        goButton.click(); // Auto-trigger enter after second video
+        video2Played = true;
+        checkBothPlayed();
       });
-  
+
+      function checkBothPlayed() {
+        if (video1Played && video2Played) {
+          loadingBar.style.display = "none";
+          enterText.style.display = "block";
+          goButton.style.display = "flex";
+        }
+      }
+
       goButton.addEventListener("click", () => {
-        if (!isStarted) {
+        if (!isStarted && enterText.style.display !== "none") {
           audioPlayer.play().then(() => {
             document.body.style.overflowY = "scroll";
             document.body.style.animationPlayState = "running";
@@ -162,7 +218,7 @@
           }).catch(error => console.error("Audio playback failed:", error));
         }
       });
-  
+
       function syncAudioWithScroll() {
         const scrollTop = window.scrollY;
         const maxScroll = document.body.scrollHeight - window.innerHeight;
@@ -173,10 +229,10 @@
         }
         document.body.style.backgroundPosition = `center ${scrollPercentage * 100}%`;
       }
-  
+
       window.addEventListener("scroll", syncAudioWithScroll);
     });
   </script>
-  
+
 </body>
 </html>
